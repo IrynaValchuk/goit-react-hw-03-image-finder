@@ -24,10 +24,13 @@ export class App extends Component {
         const response = await fetchImages(queryValue, page);
         const totalPage = Math.ceil(response.totalHits / PER_PAGE);
         this.setState(prevState => ({
-          images: [...prevState.images, ...response.hits],
+          images: [
+            ...prevState.images,
+            ...this.normalaziedImages(response.hits),
+          ],
           loadMore: this.state.page < totalPage,
         }));
-
+        
         if (response.totalHits === 0) {
           toast.error(
             `Sorry, there are no images matching your search query. Please try again.`
@@ -39,6 +42,15 @@ export class App extends Component {
         this.setState({ isLoading: false });
       }
     }
+  }
+
+  normalaziedImages(images) {
+    return images.map(({ id, webformatURL, largeImageURL, tags }) => ({
+      id,
+      webformatURL,
+      largeImageURL,
+      tags,
+    }));
   }
 
   handleSubmit = queryValue => {
