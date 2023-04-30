@@ -3,6 +3,7 @@ import { Component } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { ImageGallery, Searchbar, Loader, Button } from 'components';
 import { fetchImages } from 'services/api';
+import { PER_PAGE } from 'constants';
 import 'react-toastify/dist/ReactToastify.css';
 import css from 'components/App/App.module.css';
 
@@ -13,21 +14,21 @@ export class App extends Component {
     page: 1,
     isLoading: false,
     loadMore: false,
-    total: null,
   };
 
   async componentDidUpdate(_, prevState) {
     const { queryValue, page } = this.state;
     if (prevState.queryValue !== queryValue || prevState.page !== page) {
-      this.setState({ isLoading: true, loadMore: false });
-
       try {
+        this.setState({ isLoading: true, loadMore: false });
+        console.log(this.state.loadMore);
         const response = await fetchImages(queryValue, page);
+        const totalPage = Math.ceil(response.totalHits / PER_PAGE);
+        console.log(totalPage);
         this.setState(prevState => ({
           images: [...prevState.images, ...response.hits],
-          total: response.totalHits,
+          loadMore: this.state.page < totalPage,
         }));
-        this.setState({ loadMore: true });
 
         if (response.totalHits === 0) {
           toast.error(
@@ -44,7 +45,7 @@ export class App extends Component {
 
   handleSubmit = queryValue => {
     if (queryValue !== this.state.queryValue) {
-      this.setState({ queryValue, images: [], page: 1, total: null });
+      this.setState({ queryValue, images: [], page: 1 });
     } else toast.success('Your query has been completed.');
   };
 
@@ -53,14 +54,13 @@ export class App extends Component {
   };
 
   render() {
-    const { images, total, loadMore, isLoading } = this.state;
+    const { images, loadMore, isLoading } = this.state;
+
     return (
       <div className={css.app}>
         <Searchbar onSubmit={this.handleSubmit} />
         <ImageGallery images={images} />
-        {images.length < total && loadMore && (
-          <Button onClick={this.handleLoadMore} />
-        )}
+        {loadMore && <Button onClick={this.handleLoadMore} />}
         {isLoading && <Loader />}
         <ToastContainer autoClose={2000} />
       </div>
