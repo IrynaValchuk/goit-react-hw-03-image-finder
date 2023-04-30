@@ -21,10 +21,8 @@ export class App extends Component {
     if (prevState.queryValue !== queryValue || prevState.page !== page) {
       try {
         this.setState({ isLoading: true, loadMore: false });
-        console.log(this.state.loadMore);
         const response = await fetchImages(queryValue, page);
         const totalPage = Math.ceil(response.totalHits / PER_PAGE);
-        console.log(totalPage);
         this.setState(prevState => ({
           images: [...prevState.images, ...response.hits],
           loadMore: this.state.page < totalPage,
